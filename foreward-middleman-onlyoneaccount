@@ -1,0 +1,49 @@
+const { Client } = require('discord.js-selfbot-v13');
+
+
+const client = new Client();
+const token = "";
+
+const originalChannelId = "";
+const targetChannelId = "";
+
+let lastMessageContent = null;
+
+
+function sendMessage(content) {
+  const targetChannel = client.channels.cache.get(targetChannelId);
+  if (!targetChannel) {
+    console.error(`Cant find the channel with ID: ${targetChannelId}.`);
+    return;
+  }
+
+
+  targetChannel.sendTyping();
+  setTimeout(() => {
+    targetChannel.send(content)
+      .then(() => {
+        lastMessageContent = content;
+      })
+      .catch(error => {
+        console.error('Cant send the msg', error);
+      });
+  }, 150); 
+}
+
+client.on('ready', () => {
+  console.log(`Connected as ${client.user.tag}`);
+});
+
+client.on('message', (message) => {
+  if (message.channel.id === originalChannelId) {
+    let content = message.content ? message.content : { embeds: [message.embeds[0]] };
+    if (!lastMessageContent || JSON.stringify(content) !== JSON.stringify(lastMessageContent)) {
+      sendMessage(content);
+    }
+  }
+});
+
+
+client.login(token)
+  .then(() => console.log('Logged in to token'))
+  .catch(error => console.error('Could not log into token:', error));
